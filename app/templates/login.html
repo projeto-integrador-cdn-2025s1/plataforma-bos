@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acesso de Funcionários | Painel BOS</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/index.css') }}">
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons" defer></script>
+</head>
+<body class="d-flex align-items-center justify-content-center min-vh-100 bg-light py-5">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-12 col-md-8 col-lg-5">
+                <div class="card p-4 p-md-5 border shadow-sm rounded-4">
+                    <div class="text-center mb-4">
+                        <a href="{{ url_for('rotas_gerais.index') }}">
+                            <img src="{{ url_for('static', filename='img/logo_bos.png') }}" alt="BOS" style="max-height: 52px;" class="mb-3">
+                        </a>
+                        <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-1 rounded-pill mb-2">
+                            ÁREA RESTRITA
+                        </span>
+                        <h1 class="h4 fw-bold">Painel de Atendimento SUS</h1>
+                        <p class="text-muted small">Acesso exclusivo para funcionários e gestão do BOS.</p>
+                    </div>
+
+                    {% if erro %}
+                        <div class="alert alert-danger py-2 px-3 small rounded-3 mb-3">
+                            <i data-feather="alert-circle" class="me-1"></i> {{ erro }}
+                        </div>
+                    {% endif %}
+
+                    <form action="{{ url_for('rotas_gerais.login') }}" method="POST">
+                        <div class="mb-3">
+                            <label for="input_email" class="form-label fw-bold small">E-mail Institucional</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-muted"><i data-feather="mail"></i></span>
+                                <input type="email" class="form-control" id="input_email" name="email"
+                                    placeholder="usuario@bos.org.br" value="atendimento@bos.org.br" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="input_senha" class="form-label fw-bold small">Senha de Acesso</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-white text-muted"><i data-feather="lock"></i></span>
+                                <input type="password" class="form-control" id="input_senha" name="senha"
+                                    value="bos123" placeholder="Digite sua senha" required>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mb-3">
+                            <i data-feather="log-in" class="me-1"></i> Entrar no Painel
+                        </button>
+                    </form>
+
+                    <!-- Demonstração Rápida -->
+                    <div class="border-top pt-3 mt-2 text-center">
+                        <span class="text-muted small d-block mb-2">Contas de teste para demonstração:</span>
+                        <div class="d-flex justify-content-center gap-2">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="preencherLogin('atendimento@bos.org.br', 'bos123')">
+                                Atendimento
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="preencherLogin('admin@bos.org.br', 'admin123')">
+                                Gestor (Admin)
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="text-center mt-4">
+                        <a href="{{ url_for('rotas_gerais.index') }}" class="text-decoration-none small text-muted">
+                            <i data-feather="arrow-left" class="me-1"></i> Voltar para a Área do Paciente
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.feather) feather.replace();
+        });
+
+        function preencherLogin(email, senha) {
+            document.getElementById('input_email').value = email;
+            document.getElementById('input_senha').value = senha;
+        }
+    </script>
+</body>
+</html>
