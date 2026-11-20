@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Perguntas e respostas frequentes sobre o atendimento SUS no Banco de Olhos de Sorocaba (BOS).">
+    <title>Dúvidas Frequentes | BOS Sorocaba</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/index.css') }}">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons" defer></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container px-3 px-md-4">
+            <a class="navbar-brand" href="{{ url_for('rotas_gerais.index') }}" aria-label="Página inicial do Banco de Olhos de Sorocaba">
+                <img src="{{ url_for('static', filename='img/logo_bos.png') }}" alt="Banco de Olhos de Sorocaba">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir ou fechar menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.index') }}">
+                            <i data-feather="home" aria-hidden="true"></i> Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.consulta') }}">
+                            <i data-feather="search" aria-hidden="true"></i> Consulta
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.chat') }}">
+                            <i data-feather="message-circle" aria-hidden="true"></i> Assistente Virtual
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('rotas_gerais.duvidas') }}">
+                            <i data-feather="help-circle" aria-hidden="true"></i> Dúvidas Frequentes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.contatos') }}">
+                            <i data-feather="phone" aria-hidden="true"></i> Contatos
+                        </a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1" href="{{ url_for('rotas_gerais.painel') }}">
+                            <i data-feather="lock" style="width: 14px; height: 14px;"></i> Painel BOS
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <main class="py-5">
+        <div class="container">
+            <!-- Cabeçalho -->
+            <div class="text-center mb-5">
+                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-2">
+                    ORIENTAÇÕES INSTITUCIONAIS
+                </span>
+                <h1 class="fw-bold">Dúvidas Frequentes (FAQ)</h1>
+                <p class="text-muted max-w-700 mx-auto">
+                    Encontre respostas rápidas para os principais procedimentos, documentos exigidos, horários e normas de atendimento SUS no BOS.
+                </p>
+            </div>
+
+            <!-- Campo de Busca e Filtros -->
+            <div class="row justify-content-center mb-4">
+                <div class="col-12 col-lg-8">
+                    <div class="input-group input-group-lg shadow-sm rounded-3 overflow-hidden mb-3">
+                        <span class="input-group-text bg-white border-end-0 text-muted">
+                            <i data-feather="search"></i>
+                        </span>
+                        <input type="text" id="faq_search" class="form-control border-start-0 ps-0"
+                            placeholder="Pesquise por uma dúvida (ex: documentos, retorno, WhatsApp, TFD, horários)...">
+                    </div>
+
+                    <!-- Filtros por Categoria -->
+                    <div class="d-flex flex-wrap gap-2 justify-content-center" id="category_filters">
+                        <button class="btn btn-sm btn-primary category-btn active" data-category="todas">Todas</button>
+                        <button class="btn btn-sm btn-outline-secondary category-btn" data-category="primeira-consulta">1ª Consulta & Exames</button>
+                        <button class="btn btn-sm btn-outline-secondary category-btn" data-category="municipios">Municípios Atendidos</button>
+                        <button class="btn btn-sm btn-outline-secondary category-btn" data-category="retornos">Retornos</button>
+                        <button class="btn btn-sm btn-outline-secondary category-btn" data-category="confirmacao">Confirmação</button>
+                        <button class="btn btn-sm btn-outline-secondary category-btn" data-category="transplante">Transplante de Córnea</button>
+                        <button class="btn btn-sm btn-outline-secondary category-btn" data-category="documentos">Documentos & TFD</button>
+                        <button class="btn btn-sm btn-outline-secondary category-btn" data-category="contatos">Contatos & Horários</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verificador de Município Interativo Integrado -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-12 col-lg-9">
+                    <div class="card city-checker-card p-4 rounded-3 border">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <i data-feather="map-pin" class="text-primary"></i>
+                            <h3 class="h6 fw-bold mb-0 text-uppercase">Consulte se sua cidade pertence à Região de Sorocaba (48 municípios)</h3>
+                        </div>
+                        <p class="text-muted small mb-3">
+                            Digite sua cidade ou clique em um dos municípios da lista para saber os procedimentos aplicáveis:
+                        </p>
+                        <div class="input-group mb-3">
+                            <input type="text" id="input_cidade_faq" class="form-control" placeholder="Digite o nome da sua cidade...">
+                            <button class="btn btn-primary" id="btn_verificar_faq" type="button">Verificar Cidade</button>
+                        </div>
+                        <div id="resultado_cidade_faq" style="display: none;" class="mb-3"></div>
+                        <details class="mt-1">
+                            <summary class="small text-primary fw-bold cursor-pointer">Ver todas as 48 cidades da região de Sorocaba</summary>
+                            <div class="p-3 bg-white rounded-3 border mt-2">
+                                <div class="d-flex flex-wrap gap-1">
+                                    {% for m in municipios %}
+                                        <span class="city-badge" onclick="selecionarCidadeFaq('{{ m }}')">{{ m }}</span>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lista de Perguntas (Acordeão) -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-12 col-lg-9">
+                    <div class="accordion" id="accordionFaq">
+
+                        <!-- 1. Primeira Consulta -->
+                        <div class="accordion-item faq-item" data-category="primeira-consulta" data-keywords="primeira consulta ubs cross agendamento como marcar documentos">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq1">
+                                    Como faço para agendar a primeira consulta ou exames pelo SUS?
+                                </button>
+                            </h2>
+                            <div id="faq1" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>Pacientes que residem em <strong>Sorocaba e região</strong> devem procurar a <strong>Unidade Básica de Saúde (UBS)</strong> mais próxima de sua residência.</p>
+                                    <p>A UBS faz o encaminhamento pela <strong>Central de Vagas do município</strong>, regulada pelo sistema <strong>CROSS</strong> da Secretaria Estadual de Saúde. O paciente deve aguardar o contato da Central de Vagas informando a data e o horário agendados no Hospital Oftalmológico de Sorocaba (HOS/BOS).</p>
+                                    <div class="p-3 bg-light rounded-3 mt-2">
+                                        <strong>Horário da Central de Agendamento SUS:</strong> Segunda a sexta-feira, das 7h às 16h.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. Documentos -->
+                        <div class="accordion-item faq-item" data-category="primeira-consulta documentos" data-keywords="documentos levar consulta rg cpf cartao sus guia comprovante">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq2">
+                                    Quais documentos devo levar no dia da consulta no hospital?
+                                </button>
+                            </h2>
+                            <div id="faq2" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>No dia do atendimento no Hospital Oftalmológico de Sorocaba (HOS), você deve apresentar obrigatoriamente:</p>
+                                    <ul>
+                                        <li><strong>Guia de Referência</strong> do SUS (encaminhamento original);</li>
+                                        <li><strong>RG</strong> original com foto;</li>
+                                        <li><strong>CPF</strong>;</li>
+                                        <li><strong>Cartão Nacional de Saúde (Cartão SUS)</strong> atualizado;</li>
+                                        <li><strong>Comprovante de residência</strong> recente;</li>
+                                        <li>Telefones atualizados para contato.</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. Pacientes de Fora da Região -->
+                        <div class="accordion-item faq-item" data-category="municipios" data-keywords="moro em outra cidade fora da regiao capital sao paulo campinas transplante cornea laudo">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq3">
+                                    Moro fora da região de Sorocaba. Posso agendar consulta pelo SUS?
+                                </button>
+                            </h2>
+                            <div id="faq3" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>Conforme as diretrizes institucionais do BOS, pacientes residentes <strong>fora da região de Sorocaba</strong> somente podem agendar consultas pelo SUS para <strong>avaliação e tratamento relacionados ao transplante de córnea</strong>.</p>
+                                    <p>Nesses casos, é indispensável apresentar um <strong>laudo médico com diagnóstico e indicação expressa para possível transplante de córnea</strong>. Com esse documento em mãos, o contato deve ser feito via WhatsApp pelo número <strong>(15) 3212-7891</strong> para seguir as instruções e aguardar o chamado do hospital.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 4. Agendamento de Retorno (Região) -->
+                        <div class="accordion-item faq-item" data-category="retornos" data-keywords="retorno agendar remarcar sorocaba regiao presencial email">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq4">
+                                    Como agendar um retorno para pacientes de Sorocaba e região?
+                                </button>
+                            </h2>
+                            <div id="faq4" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>Para agendar um retorno, o paciente ou seu representante legal pode:</p>
+                                    <ul>
+                                        <li>Comparecer presencialmente à <strong>Central de Agendamento SUS</strong> (segunda a sexta, das 7h às 16h);</li>
+                                        <li>Ligar para a Central de Atendimento no <strong>(15) 3212-7000 (Opção 03)</strong>;</li>
+                                        <li>Enviar e-mail com a solicitação médica para <strong>sus@bos.org.br</strong>.</li>
+                                    </ul>
+                                    <p class="mb-0"><strong>Documentos exigidos:</strong> Solicitação médica atualizada, RG original ou cópia, telefone e e-mail de contato.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 5. Agendamento de Retorno (Fora da Região) -->
+                        <div class="accordion-item faq-item" data-category="retornos" data-keywords="retorno fora da regiao guiche email sus@bos.org.br tfd">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq5">
+                                    Como solicitar retorno se resido fora da região de Sorocaba?
+                                </button>
+                            </h2>
+                            <div id="faq5" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>Pacientes de outras localidades podem:</p>
+                                    <ol>
+                                        <li>Solicitar o retorno diretamente nos <strong>guichês do hospital</strong> no mesmo dia do atendimento realizado; ou</li>
+                                        <li>Enviar a solicitação médica atualizada e digitalizada por e-mail para <strong>sus@bos.org.br</strong> contendo nome completo do paciente, nome da mãe, data de nascimento e o pedido médico.</li>
+                                    </ol>
+                                    <p class="mb-0"><em>Caso necessite da Declaração de TFD, essa necessidade já deve ser informada no mesmo contato.</em></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 6. Confirmação de Consulta -->
+                        <div class="accordion-item faq-item" data-category="confirmacao" data-keywords="confirmar consulta presenca telefone horario">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq6">
+                                    Como confirmar uma consulta já agendada?
+                                </button>
+                            </h2>
+                            <div id="faq6" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>Você pode confirmar sua consulta por meio de qualquer um dos seguintes canais:</p>
+                                    <ul>
+                                        <li><strong>Presencialmente:</strong> de segunda a sexta-feira, das 7h às 16h;</li>
+                                        <li><strong>Por Telefone:</strong> ligue para <strong>(15) 3212-7000 (Opção 03)</strong>;</li>
+                                        <li><strong>Por E-mail:</strong> envie mensagem para <strong>sus@bos.org.br</strong>.</li>
+                                    </ul>
+                                    <p class="mb-0">No dia do comparecimento, leve a solicitação médica atualizada, RG, CPF, Cartão SUS e comprovante de residência.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 7. Transplante de Córnea -->
+                        <div class="accordion-item faq-item" data-category="transplante" data-keywords="transplante cornea whatsapp laudo indicacao 32127040 32127891">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq7">
+                                    Como funciona a avaliação para transplante de córnea?
+                                </button>
+                            </h2>
+                            <div id="faq7" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>É necessário apresentar <strong>laudo médico com diagnóstico e indicação para possível transplante de córnea</strong>.</p>
+                                    <p>Após ter o laudo em mãos, o paciente deve entrar em contato via WhatsApp com o setor de transplantes:</p>
+                                    <ul>
+                                        <li><strong>WhatsApp Setor de Córnea:</strong> (15) 3212-7040</li>
+                                        <li><strong>WhatsApp Pacientes de Fora da Região:</strong> (15) 3212-7891</li>
+                                        <li><strong>E-mail do Setor:</strong> transplante@bos.org.br</li>
+                                    </ul>
+                                    <div class="alert alert-info py-2 px-3 small mb-0">
+                                        <em>Atenção: A elegibilidade e as etapas dependem exclusivamente da avaliação clínica e dos procedimentos do hospital.</em>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8. Declaração TFD -->
+                        <div class="accordion-item faq-item" data-category="documentos" data-keywords="tfd tratamento fora de domicilio declaracao prazo 24 horas passagem prefeitura transporte">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq8">
+                                    Como solicito a Declaração de Tratamento Fora de Domicílio (TFD)?
+                                </button>
+                            </h2>
+                            <div id="faq8" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>A Declaração de Tratamento Fora de Domicílio (TFD) é fornecida <strong>somente a pacientes que já possuem consulta agendada e residem fora da região de Sorocaba</strong>.</p>
+                                    <p>A solicitação pode ser feita presencialmente, por telefone ou pelo e-mail <strong>sus@bos.org.br</strong> informando os dados da consulta e o endereço de e-mail para recebimento.</p>
+                                    <p class="mb-0"><strong>Prazo de envio:</strong> A declaração é emitida e enviada por e-mail em até <strong>24 horas</strong>.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 9. Laudos e Prontuários -->
+                        <div class="accordion-item faq-item" data-category="documentos" data-keywords="laudos relatorio prontuario copias documentos medicos site">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq9">
+                                    Como solicitar laudos médicos, prontuários ou relatórios?
+                                </button>
+                            </h2>
+                            <div id="faq9" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <p>Pacientes que precisam solicitar documentos médicos relacionados ao seu tratamento devem acessar o portal oficial de documentos do BOS:</p>
+                                    <p><a href="https://bos.org.br/solicitar-documentos/" target="_blank" rel="noopener noreferrer" class="btn btn-outline-primary btn-sm">
+                                        <i data-feather="external-link" class="me-1"></i> Acessar Portal de Solicitação de Documentos
+                                    </a></p>
+                                    <p class="small text-muted mb-0">Siga as instruções indicadas na página para o envio de documentos de identificação necessários à segurança dos dados médicos.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 10. Horários e Contatos -->
+                        <div class="accordion-item faq-item" data-category="contatos" data-keywords="horarios central de atendimento central de agendamento telefone email">
+                            <h2 class="accordion-header">
+                                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#faq10">
+                                    Qual a diferença entre a Central de Atendimento e a Central de Agendamento?
+                                </button>
+                            </h2>
+                            <div id="faq10" class="accordion-collapse collapse" data-bs-parent="#accordionFaq">
+                                <div class="accordion-body">
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-6">
+                                            <div class="border rounded-3 p-3 h-100 bg-light">
+                                                <h5 class="fw-bold h6 text-primary mb-1">Central de Atendimento SUS</h5>
+                                                <p class="small text-muted mb-2">Para informações gerais, confirmações e dúvidas.</p>
+                                                <p class="mb-1"><strong>Telefone:</strong> (15) 3212-7000 (Opção 03)</p>
+                                                <p class="mb-1"><strong>Horário:</strong> Segunda a sexta, das <strong>08h às 18h</strong></p>
+                                                <p class="mb-0"><strong>E-mail:</strong> sus@bos.org.br</p>
+                                            </div>
+                                        </div>
+                                        <div class="col-12 col-md-6">
+                                            <div class="border rounded-3 p-3 h-100 bg-light">
+                                                <h5 class="fw-bold h6 text-primary mb-1">Central de Agendamento SUS</h5>
+                                                <p class="small text-muted mb-2">Para marcação e confirmação presencial e telefônica de vagas.</p>
+                                                <p class="mb-1"><strong>Atendimento:</strong> Presencial e regulação CROSS</p>
+                                                <p class="mb-0"><strong>Horário:</strong> Segunda a sexta, das <strong>07h às 16h</strong></p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card de Ajuda Adicional com Assistente Virtual -->
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-9">
+                    <div class="card p-4 p-md-5 bg-primary text-white text-center rounded-3">
+                        <div class="card-body p-0">
+                            <div class="bg-white bg-opacity-25 rounded-circle d-inline-flex p-3 mb-3">
+                                <i data-feather="message-circle" style="width: 36px; height: 36px;"></i>
+                            </div>
+                            <h3 class="fw-bold mb-2">Não encontrou a resposta que procurava?</h3>
+                            <p class="text-white-50 max-w-600 mx-auto mb-4">
+                                Nosso Assistente Virtual com inteligência artificial está disponível 24 horas por dia para responder às suas perguntas em tempo real.
+                            </p>
+                            <a href="{{ url_for('rotas_gerais.chat') }}" class="btn btn-light text-primary btn-lg fw-bold">
+                                Conversar com o Assistente Agora <i data-feather="arrow-right" class="ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row g-4 align-items-center mb-4">
+                <div class="col-12 col-md-4 text-center text-md-start">
+                    <img src="{{ url_for('static', filename='img/logo_bos.png') }}" alt="BOS" style="max-height: 48px;">
+                    <p class="text-muted small mt-2 mb-0">
+                        Hospital Oftalmológico de Sorocaba<br>
+                        Referência em saúde ocular pelo SUS.
+                    </p>
+                </div>
+                <div class="col-12 col-md-4 text-center">
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('rotas_gerais.index') }}">Início</a>
+                        <a href="{{ url_for('rotas_gerais.consulta') }}">Consulta</a>
+                        <a href="{{ url_for('rotas_gerais.chat') }}">Assistente</a>
+                        <a href="{{ url_for('rotas_gerais.duvidas') }}">Dúvidas</a>
+                        <a href="{{ url_for('rotas_gerais.contatos') }}">Contatos</a>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 text-center text-md-end text-muted small">
+                    <p class="mb-1">Central de Atendimento SUS: <strong>(15) 3212-7000 (Opção 03)</strong></p>
+                    <p class="mb-0">Rua Nabek Shiroma, 210 — Jd. Emília, Sorocaba/SP</p>
+                </div>
+            </div>
+            <div class="text-center pt-3 border-top text-muted small">
+                <p class="mb-0">&copy; {{ 2026 }} Banco de Olhos de Sorocaba — BOS. Plataforma institucional de orientação e atendimento SUS.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.feather) {
+                feather.replace();
+            }
+
+            // Filtro de Categorias
+            const categoryButtons = document.querySelectorAll(".category-btn");
+            const faqItems = document.querySelectorAll(".faq-item");
+            const searchInput = document.getElementById("faq_search");
+
+            let currentCategory = "todas";
+
+            function filterFaq() {
+                const query = searchInput.value.toLowerCase().trim();
+
+                faqItems.forEach(item => {
+                    const itemCategory = item.dataset.category || "";
+                    const itemKeywords = (item.dataset.keywords || "") + " " + item.innerText.toLowerCase();
+
+                    const matchesCategory = (currentCategory === "todas" || itemCategory.includes(currentCategory));
+                    const matchesSearch = (!query || itemKeywords.includes(query));
+
+                    if (matchesCategory && matchesSearch) {
+                        item.style.display = "block";
+                    } else {
+                        item.style.display = "none";
+                    }
+                });
+            }
+
+            categoryButtons.forEach(btn => {
+                btn.addEventListener("click", function () {
+                    categoryButtons.forEach(b => {
+                        b.classList.remove("btn-primary", "active");
+                        b.classList.add("btn-outline-secondary");
+                    });
+                    this.classList.remove("btn-outline-secondary");
+                    this.classList.add("btn-primary", "active");
+
+                    currentCategory = this.dataset.category;
+                    filterFaq();
+                });
+            });
+
+            searchInput.addEventListener("input", filterFaq);
+
+            // Verificador de cidade FAQ
+            const inputCidadeFaq = document.getElementById("input_cidade_faq");
+            const btnVerificarFaq = document.getElementById("btn_verificar_faq");
+            const resultadoCidadeFaq = document.getElementById("resultado_cidade_faq");
+
+            window.selecionarCidadeFaq = function (cidade) {
+                inputCidadeFaq.value = cidade;
+                verificarCidadeFaq(cidade);
+            };
+
+            async function verificarCidadeFaq(cidade) {
+                if (!cidade || !cidade.trim()) return;
+                try {
+                    const res = await fetch(`/api/verificar-municipio?cidade=${encodeURIComponent(cidade.trim())}`);
+                    const data = await res.json();
+
+                    resultadoCidadeFaq.style.display = "block";
+                    if (data.pertence) {
+                        resultadoCidadeFaq.className = "alert alert-success p-3 rounded-3";
+                        resultadoCidadeFaq.innerHTML = `<strong><i data-feather="check-circle" class="me-1"></i> ${data.cidade}:</strong> ${data.mensagem}`;
+                    } else {
+                        resultadoCidadeFaq.className = "alert alert-warning p-3 rounded-3";
+                        resultadoCidadeFaq.innerHTML = `<strong><i data-feather="info" class="me-1"></i> ${data.cidade}:</strong> ${data.mensagem}`;
+                    }
+                    if (window.feather) feather.replace();
+                } catch (e) {
+                    console.error("Erro ao verificar cidade:", e);
+                }
+            }
+
+            btnVerificarFaq.addEventListener("click", () => verificarCidadeFaq(inputCidadeFaq.value));
+            inputCidadeFaq.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    e.preventDefault();
+                    verificarCidadeFaq(inputCidadeFaq.value);
+                }
+            });
+        });
+    </script>
+</body>
+</html>

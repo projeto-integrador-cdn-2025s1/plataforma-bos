@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Gerencial SUS | Banco de Olhos de Sorocaba</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/index.css') }}">
+    <!-- Chart.js para os Gráficos Gerenciais -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons" defer></script>
+    <style>
+        .kpi-card {
+            border-left: 4px solid var(--color-primary);
+            transition: transform 0.2s;
+        }
+        .kpi-card:hover {
+            transform: translateY(-3px);
+        }
+        .kpi-card.success { border-left-color: #198754; }
+        .kpi-card.warning { border-left-color: #f59e0b; }
+        .kpi-card.info { border-left-color: #0ea5e9; }
+        .kpi-card.purple { border-left-color: #8b5cf6; }
+
+        .chart-container {
+            position: relative;
+            height: 270px;
+            width: 100%;
+        }
+        .table-responsive {
+            max-height: 520px;
+            overflow-y: auto;
+        }
+        .priority-badge-P1 { background-color: #fee2e2; color: #991b1b; font-weight: 700; border: 1px solid #fca5a5; }
+        .priority-badge-P2 { background-color: #ffedd5; color: #9a3412; font-weight: 700; border: 1px solid #fdba74; }
+        .priority-badge-P3 { background-color: #fef9c3; color: #854d0e; font-weight: 700; border: 1px solid #fde047; }
+        .priority-badge-P4 { background-color: #dcfce7; color: #166534; font-weight: 700; border: 1px solid #86efac; }
+    </style>
+</head>
+<body class="bg-light">
+    <!-- Navbar do Painel -->
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{{ url_for('rotas_gerais.painel') }}">
+                <img src="{{ url_for('static', filename='img/logo_bos.png') }}" alt="BOS" style="max-height: 40px;">
+                <span class="badge bg-primary text-white fw-bold px-2 py-1 ms-2">PAINEL GERENCIAL SUS</span>
+            </a>
+
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navPainel">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse" id="navPainel">
+                <ul class="navbar-nav ms-auto align-items-center gap-3">
+                    <li class="nav-item">
+                        <span class="text-muted small d-block text-end">Logado como:</span>
+                        <strong class="text-primary small">{{ usuario_nome }} ({{ usuario_perfil }})</strong>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('rotas_gerais.index') }}" class="btn btn-outline-primary btn-sm" target="_blank" title="Ver portal público do paciente">
+                            <i data-feather="external-link" class="me-1"></i> Portal do Paciente
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a href="{{ url_for('rotas_gerais.logout') }}" class="btn btn-light btn-sm text-danger border" title="Encerrar sessão">
+                            <i data-feather="log-out"></i> Sair
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo do Dashboard -->
+    <main class="py-4">
+        <div class="container-fluid px-4">
+            <!-- Cabeçalho do Painel -->
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                <div>
+                    <h1 class="h3 fw-bold mb-1">Acompanhamento e Gestão de Consultas SUS</h1>
+                    <p class="text-muted small mb-0">Visão consolidada das solicitações, filas regulatórias e agendamentos no Banco de Olhos de Sorocaba.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm" onclick="window.print()">
+                        <i data-feather="printer" class="me-1"></i> Imprimir Relatório
+                    </button>
+                    <a href="{{ url_for('rotas_gerais.painel') }}" class="btn btn-outline-secondary btn-sm">
+                        <i data-feather="refresh-cw" class="me-1"></i> Atualizar Dados
+                    </a>
+                </div>
+            </div>
+
+            <!-- 1. Cards de Métricas / KPIs -->
+            <div class="row g-3 mb-4">
+                <div class="col-12 col-sm-6 col-xl-2">
+                    <div class="card p-3 border shadow-sm kpi-card">
+                        <span class="text-muted small text-uppercase fw-bold">Total Solicitações</span>
+                        <h2 class="h3 fw-bold text-dark mt-1 mb-0">{{ metricas.total_solicitacoes }}</h2>
+                        <span class="text-muted small mt-1 d-block">{{ metricas.total_pacientes }} pacientes</span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-2">
+                    <div class="card p-3 border shadow-sm kpi-card success">
+                        <span class="text-muted small text-uppercase fw-bold">Consultas Agendadas</span>
+                        <h2 class="h3 fw-bold text-success mt-1 mb-0">{{ metricas.total_agendadas }}</h2>
+                        <span class="text-success small mt-1 d-block"><i data-feather="check" style="width: 14px;"></i> Prontas p/ atendimento</span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-2">
+                    <div class="card p-3 border shadow-sm kpi-card warning">
+                        <span class="text-muted small text-uppercase fw-bold">Em Triagem Médica</span>
+                        <h2 class="h3 fw-bold text-warning mt-1 mb-0">{{ metricas.total_triagem }}</h2>
+                        <span class="text-muted small mt-1 d-block">Avaliação técnica</span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-2">
+                    <div class="card p-3 border shadow-sm kpi-card info">
+                        <span class="text-muted small text-uppercase fw-bold">Aguardando Vaga</span>
+                        <h2 class="h3 fw-bold text-info mt-1 mb-0">{{ metricas.total_aguardando }}</h2>
+                        <span class="text-muted small mt-1 d-block">Regulação CROSS</span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-2">
+                    <div class="card p-3 border shadow-sm kpi-card">
+                        <span class="text-muted small text-uppercase fw-bold">Concluídas / Encerradas</span>
+                        <h2 class="h3 fw-bold text-secondary mt-1 mb-0">{{ metricas.total_concluidas }}</h2>
+                        <span class="text-muted small mt-1 d-block">Atendimentos finalizados</span>
+                    </div>
+                </div>
+
+                <div class="col-12 col-sm-6 col-xl-2">
+                    <div class="card p-3 border shadow-sm kpi-card purple">
+                        <span class="text-muted small text-uppercase fw-bold">Tempo Médio Espera</span>
+                        <h2 class="h3 fw-bold text-purple mt-1 mb-0" style="color: #8b5cf6;">{{ metricas.tempo_medio_espera }} <span class="fs-6 fw-normal text-muted">dias</span></h2>
+                        <span class="text-muted small mt-1 d-block">Da solicitação ao agendamento</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Seção de Gráficos Gerenciais -->
+            <div class="row g-4 mb-4">
+                <!-- Gráfico 1: Status das Solicitações -->
+                <div class="col-12 col-lg-3">
+                    <div class="card p-3 border shadow-sm h-100 bg-white">
+                        <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i data-feather="pie-chart" class="text-primary"></i> Situação das Solicitações
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="chartStatus"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico 2: Especialidade Médica -->
+                <div class="col-12 col-lg-4">
+                    <div class="card p-3 border shadow-sm h-100 bg-white">
+                        <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i data-feather="bar-chart-2" class="text-primary"></i> Volume por Especialidade
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="chartEspecialidades"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico 3: Região do Paciente -->
+                <div class="col-12 col-lg-2">
+                    <div class="card p-3 border shadow-sm h-100 bg-white">
+                        <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i data-feather="map" class="text-primary"></i> Origem Regional
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="chartRegiao"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico 4: Canal de Entrada -->
+                <div class="col-12 col-lg-3">
+                    <div class="card p-3 border shadow-sm h-100 bg-white">
+                        <h3 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i data-feather="share-2" class="text-primary"></i> Canal de Entrada
+                        </h3>
+                        <div class="chart-container">
+                            <canvas id="chartCanais"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. Tabela Gerencial de Consultas e Solicitações -->
+            <div class="card border shadow-sm bg-white mb-4">
+                <div class="card-header bg-white py-3 border-bottom">
+                    <div class="row align-items-center g-3">
+                        <div class="col-12 col-md-4">
+                            <h2 class="h5 fw-bold mb-0">Gestão de Solicitações e Agendamentos</h2>
+                            <span class="text-muted small">Controle operacional das consultas do SUS</span>
+                            <span class="badge bg-light text-primary border ms-1">Exibindo {{ solicitacoes|length }} mais recentes de {{ metricas.total_solicitacoes }}</span>
+                        </div>
+                        <div class="col-12 col-md-5">
+                            <div class="input-group input-group-sm">
+                                <span class="input-group-text bg-white"><i data-feather="search"></i></span>
+                                <input type="text" id="tabela_busca" class="form-control"
+                                    placeholder="Filtrar por protocolo, nome do paciente, cidade ou médico...">
+                            </div>
+                        </div>
+                        <div class="col-12 col-md-3 text-md-end">
+                            <select id="filtro_status_select" class="form-select form-select-sm">
+                                <option value="TODOS">Todos os Status</option>
+                                <option value="AGENDADA">Agendadas</option>
+                                <option value="EM_TRIAGEM">Em Triagem</option>
+                                <option value="AGUARDANDO">Aguardando Vaga</option>
+                                <option value="RECEBIDA">Recebidas</option>
+                                <option value="ENCERRADA">Concluídas</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" id="tabela_solicitacoes">
+                        <thead class="table-light small text-uppercase">
+                            <tr>
+                                <th>Protocolo</th>
+                                <th>Paciente / CPF</th>
+                                <th>Cidade / Região</th>
+                                <th>Especialidade & Procedimento</th>
+                                <th>Prioridade</th>
+                                <th>Status</th>
+                                <th>Data Agendada / Médico</th>
+                                <th class="text-end">Ações</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for s in solicitacoes %}
+                                {% set ult_ag = s.agendamentos[-1] if s.agendamentos else None %}
+                                <tr class="solicitacao-linha" data-status="{{ s.status }}">
+                                    <td>
+                                        <strong class="text-primary">{{ s.protocolo }}</strong>
+                                        <span class="text-muted d-block small">{{ s.data_solicitacao.strftime('%d/%m/%Y') }} ({{ s.tempo_espera_dias }}d)</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold">{{ s.paciente.nome_completo }}</div>
+                                        <span class="text-muted small">{{ s.paciente.cpf or 'Sem CPF' }} | {{ s.paciente.telefone }}</span>
+                                    </td>
+                                    <td>
+                                        <span>{{ s.paciente.cidade or 'N/I' }}</span> / <span class="text-muted small">{{ s.paciente.estado or 'SP' }}</span>
+                                    </td>
+                                    <td>
+                                        <div class="fw-bold small">{{ s.especialidade }}</div>
+                                        <span class="text-muted small">{{ s.procedimento or s.tipo_atendimento }}</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge priority-badge-{{ s.prioridade }}">{{ s.prioridade }}</span>
+                                    </td>
+                                    <td>
+                                        {% if s.status == 'AGENDADA' %}
+                                            <span class="badge bg-success-subtle text-success border border-success-subtle">Agendada</span>
+                                        {% elif s.status == 'EM_TRIAGEM' %}
+                                            <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Em Triagem</span>
+                                        {% elif s.status == 'AGUARDANDO' %}
+                                            <span class="badge bg-info-subtle text-info border border-info-subtle">Aguardando</span>
+                                        {% elif s.status == 'ENCERRADA' %}
+                                            <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle">Concluída</span>
+                                        {% else %}
+                                            <span class="badge bg-light text-dark border">{{ s.status }}</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if ult_ag and s.status == 'AGENDADA' %}
+                                            <div class="fw-bold text-success small">
+                                                <i data-feather="calendar" style="width: 14px;"></i> {{ ult_ag.data_agendada.strftime('%d/%m/%Y %H:%M') }}
+                                            </div>
+                                            <span class="text-muted small">{{ ult_ag.profissional.nome if ult_ag.profissional else 'A definir' }}</span>
+                                        {% else %}
+                                            <span class="text-muted small">Sem agendamento</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-end">
+                                        <button type="button" class="btn btn-outline-primary btn-sm"
+                                            onclick="abrirModalGerenciar('{{ s.id }}', '{{ s.protocolo }}', '{{ s.paciente.nome_completo }}', '{{ s.status }}', '{{ s.especialidade }}')">
+                                            <i data-feather="edit-2" class="me-1"></i> Gerenciar
+                                        </button>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- 4. Seção de Profissionais da Saúde Ativos -->
+            <div class="row g-4 mb-4">
+                <div class="col-12 col-lg-6">
+                    <div class="card p-3 border shadow-sm bg-white">
+                        <h4 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i data-feather="user-check" class="text-primary"></i> Corpo Clínico SUS — Especialidades
+                        </h4>
+                        <div class="table-responsive">
+                            <table class="table table-sm align-middle mb-0">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th>Profissional</th>
+                                        <th>Especialidade</th>
+                                        <th class="text-center">Consultas Vinculadas</th>
+                                        <th class="text-end">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for p in profissionais %}
+                                        <tr>
+                                            <td class="fw-bold">{{ p.nome }}</td>
+                                            <td class="text-muted small">{{ p.especialidade }}</td>
+                                            <td class="text-center fw-bold">{{ p.agendamentos|length }}</td>
+                                            <td class="text-end"><span class="badge bg-success">Ativo</span></td>
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-12 col-lg-6">
+                    <div class="card p-4 border shadow-sm bg-white">
+                        <h4 class="h6 fw-bold mb-3 d-flex align-items-center gap-2">
+                            <i data-feather="info" class="text-primary"></i> Diretrizes Regulatórias e Prioridades SUS
+                        </h4>
+                        <div class="row g-2">
+                            <div class="col-6">
+                                <div class="p-2 border rounded-3 bg-light">
+                                    <span class="badge priority-badge-P1 mb-1">P1 — Urgência Alta</span>
+                                    <p class="small text-muted mb-0">Casos agudos, traumas oculares, ceratocone grave com iminência cirúrgica ou transplante urgente.</p>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="p-2 border rounded-3 bg-light">
+                                    <span class="badge priority-badge-P2 mb-1">P2 — Alta Prioridade</span>
+                                    <p class="small text-muted mb-0">Doenças progressivas, glaucoma descompensado, DMRI exsudativa, catarata bilateral avançada.</p>
+                                </div>
+                            </div>
+                            <div class="col-6 mt-2">
+                                <div class="p-2 border rounded-3 bg-light">
+                                    <span class="badge priority-badge-P3 mb-1">P3 — Média Prioridade</span>
+                                    <p class="small text-muted mb-0">Perdas sensoriais moderadas, exames especializados de controle e triagem fonoaudiológica.</p>
+                                </div>
+                            </div>
+                            <div class="col-6 mt-2">
+                                <div class="p-2 border rounded-3 bg-light">
+                                    <span class="badge priority-badge-P4 mb-1">P4 — Eletiva / Rotina</span>
+                                    <p class="small text-muted mb-0">Erros refrativos puros (miopia, astigmatismo, presbiopia) e consultas de rotina preventiva.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal para Gerenciar / Alterar Status da Solicitação -->
+    <div class="modal fade" id="modalGerenciar" tabindex="-1" aria-labelledby="modalTitulo" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <form action="{{ url_for('rotas_gerais.atualizar_status') }}" method="POST">
+                    <div class="modal-header">
+                        <h5 class="modal-title fw-bold" id="modalTitulo">Gerenciar Solicitação</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="modal_solicitacao_id" name="solicitacao_id">
+
+                        <div class="mb-3 p-3 bg-light rounded-3">
+                            <span class="text-muted small d-block">Protocolo / Paciente:</span>
+                            <strong id="modal_protocolo_txt" class="text-primary fs-5"></strong>
+                            <div id="modal_paciente_txt" class="fw-bold text-dark mt-1"></div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="modal_novo_status" class="form-label fw-bold small">Alterar Status para:</label>
+                            <select class="form-select" id="modal_novo_status" name="novo_status" required onchange="toggleCamposAgendamento()">
+                                <option value="RECEBIDA">RECEBIDA</option>
+                                <option value="EM_TRIAGEM">EM TRIAGEM</option>
+                                <option value="AGUARDANDO">AGUARDANDO VAGA (CROSS)</option>
+                                <option value="AGENDADA">AGENDADA (Definir data e médico)</option>
+                                <option value="ENCERRADA">ENCERRADA (Atendimento Realizado)</option>
+                                <option value="CANCELADA">CANCELADA</option>
+                            </select>
+                        </div>
+
+                        <!-- Campos condicionais para quando for agendar -->
+                        <div id="campos_agendamento" style="display: none;" class="p-3 border rounded-3 bg-light mb-3">
+                            <h6 class="fw-bold small text-primary mb-2"><i data-feather="calendar" class="me-1"></i> Dados da Consulta Agendada</h6>
+
+                            <div class="mb-2">
+                                <label for="modal_data_agendada" class="form-label small fw-bold">Data e Horário:</label>
+                                <input type="datetime-local" class="form-control form-control-sm" id="modal_data_agendada" name="data_agendada">
+                            </div>
+
+                            <div class="mb-1">
+                                <label for="modal_profissional_id" class="form-label small fw-bold">Médico Responsável:</label>
+                                <select class="form-select form-select-sm" id="modal_profissional_id" name="profissional_id">
+                                    <option value="">Equipe Geral BOS</option>
+                                    {% for p in profissionais_todos or profissionais %}
+                                        <option value="{{ p.id }}">{{ p.nome }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary btn-sm">Salvar Alterações</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script de Inicialização dos Gráficos Chart.js e Filtros -->
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.feather) feather.replace();
+
+            // 1. Gráfico de Status
+            const ctxStatus = document.getElementById('chartStatus').getContext('2d');
+            new Chart(ctxStatus, {
+                type: 'doughnut',
+                data: {
+                    labels: {{ status_counts.keys()|list|tojson }},
+                    datasets: [{
+                        data: {{ status_counts.values()|list|tojson }},
+                        backgroundColor: ['#198754', '#f59e0b', '#0ea5e9', '#6c757d', '#8b5cf6'],
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 10 } } } }
+                }
+            });
+
+            // 2. Gráfico por Especialidade
+            const ctxEsp = document.getElementById('chartEspecialidades').getContext('2d');
+            new Chart(ctxEsp, {
+                type: 'bar',
+                data: {
+                    labels: {{ esp_map.keys()|list|tojson }},
+                    datasets: [{
+                        label: 'Solicitações',
+                        data: {{ esp_map.values()|list|tojson }},
+                        backgroundColor: '#3664e5',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { y: { beginAtZero: true, ticks: { precision: 0 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // 3. Gráfico por Região
+            const ctxRegiao = document.getElementById('chartRegiao').getContext('2d');
+            new Chart(ctxRegiao, {
+                type: 'pie',
+                data: {
+                    labels: {{ regiao_counts.keys()|list|tojson }},
+                    datasets: [{
+                        data: {{ regiao_counts.values()|list|tojson }},
+                        backgroundColor: ['#3664e5', '#f97316'],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 9 } } } }
+                }
+            });
+
+            // 4. Gráfico por Canal de Entrada
+            const ctxCanal = document.getElementById('chartCanais').getContext('2d');
+            new Chart(ctxCanal, {
+                type: 'bar',
+                data: {
+                    labels: {{ canal_map.keys()|list|tojson }},
+                    datasets: [{
+                        label: 'Origem',
+                        data: {{ canal_map.values()|list|tojson }},
+                        backgroundColor: '#0ea5e9',
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    indexAxis: 'y',
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: { x: { beginAtZero: true, ticks: { precision: 0 } } },
+                    plugins: { legend: { display: false } }
+                }
+            });
+
+            // Filtro e Busca na Tabela
+            const buscaInput = document.getElementById("tabela_busca");
+            const statusSelect = document.getElementById("filtro_status_select");
+            const linhas = document.querySelectorAll(".solicitacao-linha");
+
+            function filtrarTabela() {
+                const busca = buscaInput.value.toLowerCase().trim();
+                const statusFiltro = statusSelect.value;
+
+                linhas.forEach(linha => {
+                    const statusLinha = linha.dataset.status;
+                    const textoLinha = linha.innerText.toLowerCase();
+
+                    const matchBusca = !busca || textoLinha.includes(busca);
+                    const matchStatus = statusFiltro === "TODOS" || statusLinha === statusFiltro;
+
+                    linha.style.display = (matchBusca && matchStatus) ? "" : "none";
+                });
+            }
+
+            buscaInput.addEventListener("input", filtrarTabela);
+            statusSelect.addEventListener("change", filtrarTabela);
+        });
+
+        // Funções do Modal de Gerenciamento
+        let modalInstance;
+        function abrirModalGerenciar(id, protocolo, paciente, statusAtual, especialidade) {
+            document.getElementById("modal_solicitacao_id").value = id;
+            document.getElementById("modal_protocolo_txt").innerText = protocolo;
+            document.getElementById("modal_paciente_txt").innerText = `${paciente} — ${especialidade}`;
+            document.getElementById("modal_novo_status").value = statusAtual;
+
+            toggleCamposAgendamento();
+
+            if (!modalInstance) {
+                modalInstance = new bootstrap.Modal(document.getElementById("modalGerenciar"));
+            }
+            modalInstance.show();
+        }
+
+        function toggleCamposAgendamento() {
+            const status = document.getElementById("modal_novo_status").value;
+            const campos = document.getElementById("campos_agendamento");
+            campos.style.display = (status === "AGENDADA") ? "block" : "none";
+            if (window.feather) feather.replace();
+        }
+    </script>
+</body>
+</html>

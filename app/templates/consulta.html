@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Consulte o status do seu atendimento pelo SUS no Banco de Olhos de Sorocaba.">
+    <title>Consulta de Atendimento SUS | BOS Sorocaba</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- CSS personalizado -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style/index.css') }}">
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js" defer></script>
+    <!-- Feather Icons -->
+    <script src="https://unpkg.com/feather-icons" defer></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg sticky-top">
+        <div class="container px-3 px-md-4">
+            <a class="navbar-brand" href="{{ url_for('rotas_gerais.index') }}" aria-label="Página inicial do Banco de Olhos de Sorocaba">
+                <img src="{{ url_for('static', filename='img/logo_bos.png') }}" alt="Banco de Olhos de Sorocaba">
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                aria-controls="navbarNav" aria-expanded="false" aria-label="Abrir ou fechar menu">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.index') }}">
+                            <i data-feather="home" aria-hidden="true"></i> Início
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="{{ url_for('rotas_gerais.consulta') }}">
+                            <i data-feather="search" aria-hidden="true"></i> Consulta
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.chat') }}">
+                            <i data-feather="message-circle" aria-hidden="true"></i> Assistente Virtual
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.duvidas') }}">
+                            <i data-feather="help-circle" aria-hidden="true"></i> Dúvidas Frequentes
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="{{ url_for('rotas_gerais.contatos') }}">
+                            <i data-feather="phone" aria-hidden="true"></i> Contatos
+                        </a>
+                    </li>
+                    <li class="nav-item ms-lg-2">
+                        <a class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-1" href="{{ url_for('rotas_gerais.painel') }}">
+                            <i data-feather="lock" style="width: 14px; height: 14px;"></i> Painel BOS
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Conteúdo principal -->
+    <main class="py-5">
+        <div class="container">
+            <!-- Cabeçalho da página -->
+            <div class="text-center mb-5">
+                <span class="badge bg-primary-subtle text-primary fw-bold px-3 py-2 rounded-pill mb-2">
+                    ACOMPANHAMENTO ONLINE
+                </span>
+                <h1 class="fw-bold">Consulta de Atendimento SUS</h1>
+                <p class="text-muted max-w-700 mx-auto">
+                    Consulte a situação da sua solicitação no Banco de Olhos de Sorocaba inserindo seu código de protocolo ou CPF.
+                </p>
+            </div>
+
+            <!-- Card de Pesquisa -->
+            <div class="row justify-content-center mb-5">
+                <div class="col-12 col-lg-8">
+                    <div class="card p-4 p-md-5 border shadow-sm">
+                        <form action="{{ url_for('rotas_gerais.consulta') }}" method="GET">
+                            <label for="campo_busca" class="form-label fw-bold">
+                                Número do Protocolo, Código de Atendimento ou CPF/CNS do Paciente:
+                            </label>
+                            <div class="input-group input-group-lg mb-3">
+                                <span class="input-group-text bg-white text-muted">
+                                    <i data-feather="search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="campo_busca" name="busca"
+                                    placeholder="Ex: BOS-2869850, 2869850 ou 033.915.368-70" value="{{ busca or '' }}" required autofocus>
+                                <button class="btn btn-primary px-4" type="submit">
+                                    Consultar
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Exemplos de demonstração para teste -->
+                        <div class="mt-2">
+                            <span class="small text-muted me-2">Exemplos para teste rápido:</span>
+                            <div class="d-flex flex-wrap gap-2 mt-1">
+                                {% for ex in exemplos_protocolo %}
+                                    <a href="{{ url_for('rotas_gerais.consulta', busca=ex.protocolo) }}"
+                                        class="badge bg-light text-primary border text-decoration-none p-2"
+                                        title="{{ ex.descricao }}">
+                                        {{ ex.protocolo }} ({{ ex.descricao }})
+                                    </a>
+                                {% endfor %}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Exibição de Erro -->
+            {% if erro %}
+                <div class="row justify-content-center mb-5">
+                    <div class="col-12 col-lg-8">
+                        <div class="alert alert-warning p-4 rounded-3 d-flex align-items-start gap-3">
+                            <i data-feather="alert-triangle" class="text-warning flex-shrink-0 mt-1" style="width: 24px; height: 24px;"></i>
+                            <div>
+                                <h5 class="alert-heading fw-bold mb-1">Atenção</h5>
+                                <p class="mb-2">{{ erro }}</p>
+                                <hr>
+                                <p class="small mb-0 text-muted">
+                                    Se você solicitou seu atendimento recentemente pela UBS, aguarde o cadastro na Central de Vagas (sistema CROSS).
+                                    Para dúvidas sobre agendamento, entre em contato com a <strong>Central de Atendimento SUS</strong> pelo telefone <strong>(15) 3212-7000 (Opção 03)</strong>.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Resultado da Consulta -->
+            {% if solicitacao %}
+                <div class="row justify-content-center mb-5">
+                    <div class="col-12 col-lg-10">
+                        <div class="card p-4 p-md-5 border shadow-sm">
+                            <!-- Cabeçalho do Resultado -->
+                            <div class="d-flex flex-wrap justify-content-between align-items-center pb-4 border-bottom gap-3">
+                                <div>
+                                    <span class="text-muted small text-uppercase fw-bold">Código do Protocolo</span>
+                                    <h2 class="h3 fw-bold text-primary mb-0">{{ solicitacao.protocolo }}</h2>
+                                </div>
+                                <div class="text-end">
+                                    <span class="text-muted small text-uppercase fw-bold d-block mb-1">Situação da Solicitação</span>
+                                    {% if solicitacao.status == 'AGENDADA' %}
+                                        <span class="badge-status badge-agendada">
+                                            <i data-feather="calendar" class="me-1"></i> Agendada
+                                        </span>
+                                    {% elif solicitacao.status == 'EM_TRIAGEM' %}
+                                        <span class="badge-status badge-triagem">
+                                            <i data-feather="activity" class="me-1"></i> Em Triagem Médica
+                                        </span>
+                                    {% elif solicitacao.status == 'AGUARDANDO' %}
+                                        <span class="badge-status badge-aguardando">
+                                            <i data-feather="clock" class="me-1"></i> Aguardando Vaga
+                                        </span>
+                                    {% elif solicitacao.status == 'ENCERRADA' %}
+                                        <span class="badge-status badge-encerrada">
+                                            <i data-feather="check-circle" class="me-1"></i> Atendimento Concluído
+                                        </span>
+                                    {% else %}
+                                        <span class="badge-status badge-recebida">
+                                            <i data-feather="inbox" class="me-1"></i> {{ solicitacao.status }}
+                                        </span>
+                                    {% endif %}
+                                </div>
+                            </div>
+
+                            <!-- Linha do Tempo Visual (Stepper) -->
+                            <div class="my-4">
+                                <h4 class="h6 fw-bold text-muted text-uppercase mb-3">Progresso do Atendimento</h4>
+                                <div class="timeline-stepper">
+                                    <!-- Passo 1: Recebida -->
+                                    <div class="timeline-step {% if passo_atual >= 1 %}completed{% endif %} {% if passo_atual == 1 %}active{% endif %}">
+                                        <div class="timeline-circle">
+                                            {% if passo_atual > 1 %}<i data-feather="check"></i>{% else %}1{% endif %}
+                                        </div>
+                                        <div class="timeline-title">Recebida</div>
+                                    </div>
+                                    <!-- Passo 2: Triagem -->
+                                    <div class="timeline-step {% if passo_atual >= 2 %}completed{% endif %} {% if passo_atual == 2 %}active{% endif %}">
+                                        <div class="timeline-circle">
+                                            {% if passo_atual > 2 %}<i data-feather="check"></i>{% else %}2{% endif %}
+                                        </div>
+                                        <div class="timeline-title">Em Triagem</div>
+                                    </div>
+                                    <!-- Passo 3: Aguardando Vaga -->
+                                    <div class="timeline-step {% if passo_atual >= 3 %}completed{% endif %} {% if passo_atual == 3 %}active{% endif %}">
+                                        <div class="timeline-circle">
+                                            {% if passo_atual > 3 %}<i data-feather="check"></i>{% else %}3{% endif %}
+                                        </div>
+                                        <div class="timeline-title">Aguardando Vaga</div>
+                                    </div>
+                                    <!-- Passo 4: Agendada -->
+                                    <div class="timeline-step {% if passo_atual >= 4 %}completed{% endif %} {% if passo_atual == 4 %}active{% endif %}">
+                                        <div class="timeline-circle">
+                                            {% if passo_atual > 4 %}<i data-feather="check"></i>{% else %}4{% endif %}
+                                        </div>
+                                        <div class="timeline-title">Agendada</div>
+                                    </div>
+                                    <!-- Passo 5: Concluída -->
+                                    <div class="timeline-step {% if passo_atual >= 5 %}completed active{% endif %}">
+                                        <div class="timeline-circle">
+                                            {% if passo_atual == 5 %}<i data-feather="check"></i>{% else %}5{% endif %}
+                                        </div>
+                                        <div class="timeline-title">Concluída</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Se Agendamento Confirmado/Existente -->
+                            {% if agendamento and solicitacao.status == 'AGENDADA' %}
+                                <div class="alert alert-success border-success p-4 rounded-3 my-4">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <i data-feather="calendar" class="text-success" style="width: 28px; height: 28px;"></i>
+                                        <h3 class="h5 fw-bold text-success mb-0">Consulta Agendada Confirmada</h3>
+                                    </div>
+                                    <div class="row g-3">
+                                        <div class="col-12 col-md-4">
+                                            <span class="text-muted small d-block">Data e Horário:</span>
+                                            <strong class="fs-5">{{ agendamento.data_agendada.strftime('%d/%m/%Y às %H:%M') }}</strong>
+                                        </div>
+                                        <div class="col-12 col-md-4">
+                                            <span class="text-muted small d-block">Profissional Responsável:</span>
+                                            <strong>{{ agendamento.profissional.nome if agendamento.profissional else 'Equipe Médica BOS' }}</strong>
+                                            <span class="text-muted small d-block">{{ agendamento.profissional.especialidade if agendamento.profissional else '' }}</span>
+                                        </div>
+                                        <div class="col-12 col-md-4">
+                                            <span class="text-muted small d-block">Status de Confirmação:</span>
+                                            <span class="badge bg-success">{{ agendamento.status_confirmacao }}</span>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <p class="small mb-0 text-success-emphasis">
+                                        <i data-feather="info" class="me-1"></i> Para confirmar presença ou solicitar alterações, ligue para a Central de Atendimento no <strong>(15) 3212-7000 (Opção 03)</strong> ou compareça de segunda a sexta, das 7h às 16h.
+                                    </p>
+                                </div>
+                            {% endif %}
+
+                            <!-- Dados Detalhados da Solicitação -->
+                            <div class="row g-4 my-2">
+                                <div class="col-12 col-md-6">
+                                    <div class="p-3 bg-light rounded-3">
+                                        <h4 class="h6 fw-bold text-muted text-uppercase mb-3">Dados do Paciente</h4>
+                                        <p class="mb-1"><strong>Nome:</strong> {{ mascarar_nome(solicitacao.paciente.nome_completo) }}</p>
+                                        <p class="mb-1"><strong>CPF:</strong> {{ mascarar_cpf(solicitacao.paciente.cpf) }}</p>
+                                        <p class="mb-0"><strong>Município:</strong> {{ solicitacao.paciente.cidade or 'Não informado' }} / {{ solicitacao.paciente.estado or 'SP' }}</p>
+                                    </div>
+                                </div>
+                                <div class="col-12 col-md-6">
+                                    <div class="p-3 bg-light rounded-3">
+                                        <h4 class="h6 fw-bold text-muted text-uppercase mb-3">Dados do Atendimento</h4>
+                                        <p class="mb-1"><strong>Especialidade:</strong> {{ solicitacao.especialidade }}</p>
+                                        <p class="mb-1"><strong>Procedimento:</strong> {{ solicitacao.procedimento or solicitacao.tipo_atendimento }}</p>
+                                        <p class="mb-0"><strong>Data da Solicitação:</strong> {{ solicitacao.data_solicitacao.strftime('%d/%m/%Y') }} ({{ solicitacao.tempo_espera_dias }} dias)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- O que levar no dia do atendimento -->
+                            <div class="border rounded-3 p-4 mt-4 bg-white">
+                                <h4 class="h6 fw-bold text-primary text-uppercase mb-3">
+                                    <i data-feather="file-text" class="me-1"></i> Documentos Obrigatórios para o Dia do Atendimento
+                                </h4>
+                                <ul class="list-unstyled mb-0 row g-2">
+                                    <li class="col-12 col-md-6 d-flex align-items-center gap-2">
+                                        <i data-feather="check-square" class="text-success flex-shrink-0"></i>
+                                        <span>Guia de Referência original do SUS (encaminhamento)</span>
+                                    </li>
+                                    <li class="col-12 col-md-6 d-flex align-items-center gap-2">
+                                        <i data-feather="check-square" class="text-success flex-shrink-0"></i>
+                                        <span>Documento oficial com foto (RG) e CPF originais</span>
+                                    </li>
+                                    <li class="col-12 col-md-6 d-flex align-items-center gap-2">
+                                        <i data-feather="check-square" class="text-success flex-shrink-0"></i>
+                                        <span>Cartão Nacional de Saúde (Cartão SUS) atualizado</span>
+                                    </li>
+                                    <li class="col-12 col-md-6 d-flex align-items-center gap-2">
+                                        <i data-feather="check-square" class="text-success flex-shrink-0"></i>
+                                        <span>Comprovante de endereço recente no nome do paciente</span>
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <!-- Ações -->
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mt-4 pt-3 border-top gap-3">
+                                <button type="button" class="btn btn-outline-secondary" onclick="window.print()">
+                                    <i data-feather="printer" class="me-1"></i> Imprimir Informações
+                                </button>
+                                <a href="{{ url_for('rotas_gerais.chat') }}" class="btn btn-outline-primary">
+                                    <i data-feather="message-circle" class="me-1"></i> Tirar Dúvida com o Assistente
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+
+            <!-- Guia Institucional de Atendimento (Para quem ainda não tem protocolo) -->
+            <div class="row justify-content-center">
+                <div class="col-12 col-lg-10">
+                    <div class="card p-4 p-md-5 border bg-white">
+                        <div class="text-center mb-4">
+                            <h3 class="fw-bold">Ainda não tem uma solicitação ou agendamento?</h3>
+                            <p class="text-muted">
+                                Veja o que fazer para agendar consultas, exames ou procedimentos pelo SUS no BOS de acordo com a sua situação.
+                            </p>
+                        </div>
+
+                        <div class="row g-4">
+                            <!-- Pacientes de Sorocaba e Região -->
+                            <div class="col-12 col-md-6">
+                                <div class="border rounded-3 p-4 h-100">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <i data-feather="map-pin" class="text-primary"></i>
+                                        <h4 class="h6 fw-bold mb-0">Moradores de Sorocaba e Região</h4>
+                                    </div>
+                                    <p class="text-muted small">
+                                        Para primeira consulta ou exames de Oftalmologia, Otorrino e Fonoaudiologia:
+                                    </p>
+                                    <ol class="small text-muted ps-3 mb-3">
+                                        <li>Procure a <strong>Unidade Básica de Saúde (UBS)</strong> do seu bairro.</li>
+                                        <li>A UBS cadastra a solicitação na <strong>Central de Vagas</strong> municipal regulada pelo CROSS.</li>
+                                        <li>Aguarde o contato informando a data da consulta no Hospital Oftalmológico de Sorocaba.</li>
+                                    </ol>
+                                    <span class="badge bg-light text-dark">Central de Agendamento: Seg a Sex, das 7h às 16h</span>
+                                </div>
+                            </div>
+
+                            <!-- Pacientes de Fora da Região -->
+                            <div class="col-12 col-md-6">
+                                <div class="border rounded-3 p-4 h-100">
+                                    <div class="d-flex align-items-center gap-2 mb-3">
+                                        <i data-feather="globe" class="text-primary"></i>
+                                        <h4 class="h6 fw-bold mb-0">Moradores de Outras Localidades</h4>
+                                    </div>
+                                    <p class="text-muted small">
+                                        Pacientes de fora da região possuem atendimento SUS no BOS voltado à <strong>avaliação para transplante de córnea</strong>:
+                                    </p>
+                                    <ol class="small text-muted ps-3 mb-3">
+                                        <li>Obtenha um laudo médico com diagnóstico e indicação de transplante.</li>
+                                        <li>Envie o laudo via <strong>WhatsApp (15) 3212-7891</strong> ou <strong>(15) 3212-7040</strong>.</li>
+                                        <li>Aguarde as orientações da equipe institucional.</li>
+                                    </ol>
+                                    <span class="badge bg-light text-dark">E-mail: transplante@bos.org.br</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card de Agendamento de Retorno e TFD -->
+                        <div class="row g-4 mt-2">
+                            <div class="col-12 col-md-6">
+                                <div class="bg-light rounded-3 p-3">
+                                    <h5 class="h6 fw-bold mb-2"><i data-feather="refresh-cw" class="text-primary me-1"></i> Agendamento de Retorno</h5>
+                                    <p class="text-muted small mb-0">
+                                        Apresente solicitação médica atualizada. Pacientes de Sorocaba podem agendar presencialmente ou por e-mail (<a href="mailto:sus@bos.org.br">sus@bos.org.br</a>). Pacientes de outras cidades podem agendar no guichê do hospital no dia do atendimento ou enviar o pedido digitalizado por e-mail.
+                                    </p>
+                                </div>
+                            </div>
+                            <div class="col-12 col-md-6">
+                                <div class="bg-light rounded-3 p-3">
+                                    <h5 class="h6 fw-bold mb-2"><i data-feather="file-text" class="text-primary me-1"></i> Declaração de TFD</h5>
+                                    <p class="text-muted small mb-0">
+                                        A Declaração de Tratamento Fora de Domicílio é fornecida a pacientes com consulta agendada que residem fora de Sorocaba e região. É enviada por e-mail em até 24 horas após solicitação.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Rodapé -->
+    <footer class="site-footer">
+        <div class="container">
+            <div class="row g-4 align-items-center mb-4">
+                <div class="col-12 col-md-4 text-center text-md-start">
+                    <img src="{{ url_for('static', filename='img/logo_bos.png') }}" alt="BOS" style="max-height: 48px;">
+                    <p class="text-muted small mt-2 mb-0">
+                        Hospital Oftalmológico de Sorocaba<br>
+                        Referência em saúde ocular pelo SUS.
+                    </p>
+                </div>
+                <div class="col-12 col-md-4 text-center">
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{{ url_for('rotas_gerais.index') }}">Início</a>
+                        <a href="{{ url_for('rotas_gerais.consulta') }}">Consulta</a>
+                        <a href="{{ url_for('rotas_gerais.chat') }}">Assistente</a>
+                        <a href="{{ url_for('rotas_gerais.duvidas') }}">Dúvidas</a>
+                        <a href="{{ url_for('rotas_gerais.contatos') }}">Contatos</a>
+                    </div>
+                </div>
+                <div class="col-12 col-md-4 text-center text-md-end text-muted small">
+                    <p class="mb-1">Central de Atendimento SUS: <strong>(15) 3212-7000 (Opção 03)</strong></p>
+                    <p class="mb-0">Rua Nabek Shiroma, 210 — Jd. Emília, Sorocaba/SP</p>
+                </div>
+            </div>
+            <div class="text-center pt-3 border-top text-muted small">
+                <p class="mb-0">&copy; {{ 2026 }} Banco de Olhos de Sorocaba — BOS. Plataforma institucional de orientação e atendimento SUS.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            if (window.feather) {
+                feather.replace();
+            }
+        });
+    </script>
+</body>
+</html>
